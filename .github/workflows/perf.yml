@@ -63,6 +63,9 @@ jobs:
       - name: Compare
         id: compare
         env:
+          # With YJIT, as Rails turns it on, and some changes to Grape are
+          # faster or slower with it than without.
+          RUBY_YJIT_ENABLE: '1'
           # (Run by hand, it compares anyway: with nothing changed, the code
           # with itself, which checks the setup.)
           DUEL_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
