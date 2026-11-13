@@ -8,5 +8,6 @@
 
 eval_gemfile '../Gemfile'
 
-gem 'duel', '~> 0.1.8'
+# (An exact version, as the Perf comment workflow's, bumped with it.)
+gem 'duel', '0.1.8'
 gem 'stackprof', platforms: :mri

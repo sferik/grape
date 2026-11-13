@@ -53,15 +53,17 @@ jobs:
         if: steps.report.outcome == 'success'
         with:
           ruby-version: ruby
-      # Duel's own code, from RubyGems (none of the pull request's), so a
-      # fix to how it comments comes with a release of Duel.
+      # Duel's own code, from RubyGems (none of the pull request's), at an
+      # exact version, as gemfiles/duel.gemfile's: this job's token can
+      # write to the pull request, so a new release of Duel runs with it
+      # only once it's been bumped to here, on purpose.
       - name: Comment on the pull request
         if: steps.report.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          gem install duel --version '~> 0.1.8' --no-document
+          gem install duel --version '0.1.8' --no-document
           duel comment --report "$RUNNER_TEMP/report" --head "$HEAD_SHA" --marker 'duel'
 
   again:
