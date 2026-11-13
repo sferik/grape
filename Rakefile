@@ -26,8 +26,10 @@ RuboCop::RakeTask.new
 
 task(default: %i[rubocop spec])
 
-# Duel requires Ruby 3.4 or later
-if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
+# Duel's tasks, in its own bundle (gemfiles/duel.gemfile).
+begin
   require('duel/rake_task')
   Duel::RakeTask.new
+rescue LoadError
+  # (Any other bundle, which hasn't got Duel.)
 end
