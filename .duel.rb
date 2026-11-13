@@ -16,20 +16,7 @@ Duel.configure do |c|
   # or :never.
   # c.comment = :failures
 
-  # Which runs a regression fails: :every_run, or :pull_requests, for a
-  # project where people push to master directly (on GitHub Actions, another
-  # run warns and passes, and a pushed commit gets the comment instead, from
-  # a workflow job written only where this is set: see docs/ci.md).
-  # c.fail_on = :every_run
-
   # A label that accepts a regression in a pull request, for a change
   # that's slower on purpose (nil for none).
   c.accept_label = 'duel: accept'
-
-  # What the workflow compares a push with: :before (the commit before it),
-  # or :last_passed (the last commit Duel passed, which a branch,
-  # duel/passed/master, marks), so small slowdowns add up until they fail.
-  # (A workflow job moves the branch, written only where this is set: see
-  # docs/ci.md.)
-  # c.push_base = :before
 end
