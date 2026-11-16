@@ -29,9 +29,13 @@ permissions: {}
 jobs:
   duel:
     uses: sferik/duel-ruby/.github/workflows/duel.yml@v0.2.0
-    # (Its Duel job, which runs the branch's code, only reads.)
+    # (Its Duel job, which runs the branch's code, only reads: the
+    # workflow keeps it to contents: read. GitHub checks what each of its
+    # jobs asks for against what's granted here, run or not, and those
+    # that comment on a pushed commit, mark a push passed or keep a badge,
+    # none of which this workflow turns on, ask for contents: write.)
     permissions:
-      contents: read
+      contents: write
       pull-requests: read # for the pull request's labels (see c.accept_label)
     with:
       # The newest Ruby, which those who care most about speed run.
