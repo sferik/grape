@@ -8,6 +8,7 @@
 
 eval_gemfile '../Gemfile'
 
-# (An exact version, as the Perf comment workflow's, bumped with it.)
-gem 'duel', '0.1.8'
+# (An exact version, the release whose workflows .github/workflows call,
+# bumped with them.)
+gem 'duel', '0.2.0'
 gem 'stackprof', platforms: :mri

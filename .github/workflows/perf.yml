@@ -1,9 +1,12 @@
 name: Perf
 
-# On pull requests only, and only those that change what the benchmarks
-# measure (or the benchmarks, or how they run): a squash merge's push
-# would mostly repeat its pull request's run. Run by hand (on a fork,
-# say), it compares the code with itself, which checks the setup.
+# Duel's performance regression guards, run by Duel's reusable workflow
+# (see Duel's docs/ci.md), which this one calls with what .duel.rb sets
+# that it needs. On pull requests only, and only those that change what
+# the benchmarks measure (or the benchmarks, or how they run): a squash
+# merge's push would mostly repeat its pull request's run. Run by hand
+# (on a fork, say), it compares the code with itself, which checks the
+# setup.
 on:
   pull_request:
     paths:
@@ -21,73 +24,22 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# The Duel job runs the branch's code (its benchmarks too), so it only
-# reads. Commenting on the pull request is the Perf comment workflow's,
-# which runs none of it.
-permissions:
-  contents: read
-  pull-requests: read # for the pull request's labels (see c.accept_label)
+permissions: {}
 
 jobs:
   duel:
-    name: Duel
-    runs-on: ubuntu-latest
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/duel.gemfile # (Duel's own bundle)
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # the baseline comes from history, tags included
-          persist-credentials: false
-      # The pull request's labels, for c.accept_label in .duel.rb, as a
-      # JSON array. They're read as the job runs, and adding the label (or
-      # taking it off) runs the job again: see the Perf comment workflow.
-      - name: Find the pull request's labels
-        id: labels
-        if: github.event_name == 'pull_request'
-        continue-on-error: true # (without them, nothing's accepted)
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: |
-          labels=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/labels" --jq '[.[].name]')
-          echo "labels=$labels" >> "$GITHUB_OUTPUT"
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "4.0" # the newest Ruby, which those who care most about speed run
-          bundler-cache: true
-      # Against the branch the pull request targets. Duel adds its report
-      # to the job's summary, writes it to duel.md for the comment, and
-      # sets the step's outputs to say whether to comment, as c.comment in
-      # .duel.rb says, whatever the outcome.
-      - name: Compare
-        id: compare
-        env:
-          # With YJIT, as Rails turns it on, and some changes to Grape are
-          # faster or slower with it than without.
-          RUBY_YJIT_ENABLE: '1'
-          # (Run by hand, it compares anyway: with nothing changed, the code
-          # with itself, which checks the setup.)
-          DUEL_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
-          DUEL_LABELS: ${{ steps.labels.outputs.labels }}
-        run: bundle exec duel --markdown "$RUNNER_TEMP/duel/duel.md"
-      # For a pull request, what Duel said, for the Perf comment workflow,
-      # which can't see this job's outputs.
-      - name: Say whether to comment
-        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        env:
-          PR: ${{ github.event.pull_request.number }}
-          COMMENT: ${{ steps.compare.outputs.comment }}
-          STATUS: ${{ steps.compare.outputs.status }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/duel"
-          printf 'pr=%s\ncomment=%s\nstatus=%s\n' "$PR" "$COMMENT" "$STATUS" > "$RUNNER_TEMP/duel/comment.env"
-      # The report, for the comments.
-      - name: Keep the report
-        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: duel-report
-          path: ${{ runner.temp }}/duel/
-          if-no-files-found: ignore # none when Duel didn't get to compare
-          retention-days: 1
+    uses: sferik/duel-ruby/.github/workflows/duel.yml@v0.2.0
+    # (Its Duel job, which runs the branch's code, only reads.)
+    permissions:
+      contents: read
+      pull-requests: read # for the pull request's labels (see c.accept_label)
+    with:
+      # The newest Ruby, which those who care most about speed run.
+      ruby-version: "4.0"
+      # With YJIT, as Rails turns it on, and some changes to Grape are
+      # faster or slower with it than without.
+      yjit: true
+      # Duel's own bundle, so Duel and StackProf stay out of the one every
+      # other Gemfile evaluates.
+      gemfile: gemfiles/duel.gemfile
+      accept-label: "duel: accept"
