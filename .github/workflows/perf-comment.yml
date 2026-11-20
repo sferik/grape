@@ -22,7 +22,8 @@ permissions: {}
 
 jobs:
   comment:
-    uses: sferik/duel-ruby/.github/workflows/duel-comment.yml@v0.2.0
+    # At the commit Duel's release was tagged at, as a tag can be moved.
+    uses: sferik/duel-ruby/.github/workflows/duel-comment.yml@14e3fd0c230d19872715e4e3ecd30955825f1233 # v0.3.0
     permissions:
       actions: write # to get the report from the Perf run, and run its Duel job again
       pull-requests: write # to comment on the pull request with the report

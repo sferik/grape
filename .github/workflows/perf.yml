@@ -28,22 +28,20 @@ permissions: {}
 
 jobs:
   duel:
-    uses: sferik/duel-ruby/.github/workflows/duel.yml@v0.2.0
-    # (Its Duel job, which runs the branch's code, only reads: the
-    # workflow keeps it to contents: read. GitHub checks what each of its
-    # jobs asks for against what's granted here, run or not, and those
-    # that comment on a pushed commit, mark a push passed or keep a badge,
-    # none of which this workflow turns on, ask for contents: write.)
+    # At the commit Duel's release was tagged at, as a tag can be moved.
+    uses: sferik/duel-ruby/.github/workflows/duel.yml@14e3fd0c230d19872715e4e3ecd30955825f1233 # v0.3.0
+    # (It runs the branch's code, so it only reads. The jobs that write,
+    # for a push, are a workflow of Duel's own, which this one, for pull
+    # requests alone, doesn't call.)
     permissions:
-      contents: write
+      contents: read
       pull-requests: read # for the pull request's labels (see c.accept_label)
     with:
       # The newest Ruby, which those who care most about speed run.
       ruby-version: "4.0"
       # With YJIT, as Rails turns it on, and some changes to Grape are
       # faster or slower with it than without.
-      yjit: true
+      jit: yjit
       # Duel's own bundle, so Duel and StackProf stay out of the one every
       # other Gemfile evaluates.
       gemfile: gemfiles/duel.gemfile
-      accept-label: "duel: accept"

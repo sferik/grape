@@ -10,5 +10,5 @@ eval_gemfile '../Gemfile'
 
 # (An exact version, the release whose workflows .github/workflows call,
 # bumped with them.)
-gem 'duel', '0.2.0'
+gem 'duel', '0.3.0'
 gem 'stackprof', platforms: :mri
